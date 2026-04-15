@@ -1,0 +1,128 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - C2 Dashboard Drifted Files
+  - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected spec state — it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the drift across all five affected files
+  - **Scoped PBT Approach**: Scope the property to the concrete failing cases (deterministic file-content assertions)
+  - Assert `types/exploit.ts` exports `ExploitStatus` containing `'SUCCESS_STOLEN'` — currently has `'SUCCESS'` instead
+  - Assert `types/exploit.ts` exports `ScenarioMode` with values `'LEGACY_VULNERABLE' | 'AEGIS_SECURED'` — currently exported as `Scenario = 'LEGACY' | 'AEGIS'`
+  - Assert `types/exploit.ts` does NOT export `PayloadType`, `CSRFStatus`, `VictimPayment`, `CSRFInterceptState`, `C2AttackState`
+  - Assert `hooks/useAgenticExploit.ts` does NOT reference `targetAmtdPort`, `payloadType`, or `ambientCredentialsEnabled`
+  - Assert `app/page.tsx` imports `useAgenticExploit` (not `useC2Attack`)
+  - Assert `app/page.tsx` contains `"SIMULATE CSRF ATTACK"` (not `"LAUNCH CSRF PAYLOAD"`)
+  - Assert `app/page.tsx` contains `"SUCCESS_STOLEN"` (success modal branch)
+  - Assert `app/globals.css` does NOT contain `c3-tokens.css`
+  - Assert `app/CSRFInterceptConsole.tsx` does NOT exist
+  - Assert `hooks/useCSRFInterception.ts` does NOT exist
+  - Assert `hooks/useC2Attack.ts` does NOT exist
+  - Run `npm run type-check` (`tsc --noEmit`) on unfixed code — expect TypeScript errors
+  - **EXPECTED OUTCOME**: All assertions FAIL and `tsc --noEmit` reports errors (this proves the bug exists)
+  - Document counterexamples found (e.g., `ExploitStatus` has `'SUCCESS'` not `'SUCCESS_STOLEN'`, `Scenario` not `ScenarioMode`, `useC2Attack` import in page.tsx, `c3-tokens.css` import in globals.css, three extra files present)
+  - Mark task complete when test is written, run, and failures are documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Unchanged Files Remain Byte-for-Byte Identical
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe: `app/layout.tsx` current content (JetBrains Mono font load + metadata title `"AGENTIC_SWARM_C2 v4.2.0"`)
+  - Observe: `app/TerminalLogEntry.tsx` current content (typewriter animation logic)
+  - Observe: `next.config.js` current content
+  - Observe: `package.json` current content (no new dependencies)
+  - Observe: `tailwind.config.js` current content
+  - Record SHA-256 / file hashes of all five preservation-scope files before any changes
+  - Write property-based test: for all files X where `isBugCondition(X)` is false, `hash(X.before) === hash(X.after)`
+  - Run tests on UNFIXED code — all five files should hash-match themselves (trivially pass)
+  - **EXPECTED OUTCOME**: Tests PASS on unfixed code (confirms baseline to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
+
+- [x] 3. Fix — Restore C2 Dashboard to Spec-Defined State
+
+  - [x] 3.1 Delete extra files not in spec
+    - Delete `app/CSRFInterceptConsole.tsx`
+    - Delete `hooks/useCSRFInterception.ts`
+    - Delete `hooks/useC2Attack.ts`
+    - _Bug_Condition: isBugCondition(X) where X.path IN ['app/CSRFInterceptConsole.tsx', 'hooks/useCSRFInterception.ts', 'hooks/useC2Attack.ts'] AND X exists_
+    - _Expected_Behavior: Files are absent from the workspace_
+    - _Preservation: layout.tsx, TerminalLogEntry.tsx, next.config.js, package.json, tailwind.config.js untouched_
+    - _Requirements: 2.9_
+
+  - [x] 3.2 Restore `types/exploit.ts` to spec-defined state
+    - Replace `ExploitStatus` — change `'SUCCESS'` → `'SUCCESS_STOLEN'`, add `'ENUMERATING'` between `'IDLE'` and `'INJECTING'`
+    - Remove `PayloadType` type entirely
+    - Remove `CSRFStatus` type entirely
+    - Remove `VictimPayment` interface entirely
+    - Remove `CSRFInterceptState` interface entirely
+    - Rename `Scenario` → `ScenarioMode` with values `'LEGACY_VULNERABLE' | 'AEGIS_SECURED'`
+    - Rewrite `AttackState` to `{ status: ExploitStatus; scenario: ScenarioMode; targetUrl: string; logs: LogEntry[]; }` (remove `targetAmtdPort`, `payloadType`, `ambientCredentialsEnabled`)
+    - Remove `C2AttackState` interface entirely
+    - Final exports: `ExploitStatus`, `ScenarioMode`, `LogEntry`, `AttackState` — nothing else
+    - _Bug_Condition: isBugCondition(X) where X.path = 'types/exploit.ts' AND X exports wrong type names/values_
+    - _Expected_Behavior: ExploitStatus = 'IDLE' | 'ENUMERATING' | 'INJECTING' | 'SUCCESS_STOLEN' | 'FAILED_BLURRED'; ScenarioMode = 'LEGACY_VULNERABLE' | 'AEGIS_SECURED'; AttackState has exactly {status, scenario, targetUrl, logs}_
+    - _Preservation: No changes to layout.tsx, TerminalLogEntry.tsx, next.config.js, package.json, tailwind.config.js_
+    - _Requirements: 2.2_
+
+  - [x] 3.3 Restore `hooks/useAgenticExploit.ts` to spec-defined state
+    - Update import to use `ScenarioMode` instead of `Scenario`
+    - Rewrite initial state to spec-defined `AttackState` shape: `{ status: 'IDLE', scenario: 'LEGACY_VULNERABLE', targetUrl: '', logs: [] }`
+    - Accept `aegisIp` and `scenario` as parameters; derive `targetUrl` from `aegisIp`
+    - Replace non-spec status values (`ENUMERATING_PORTS`, `COMPILING_PAYLOAD`, `INJECTING_CSRF`) with spec-defined values (`ENUMERATING`, `INJECTING`)
+    - Add `SUCCESS_STOLEN` branch: when `response.ok`, set status to `'SUCCESS_STOLEN'` and add success log
+    - Keep `FAILED_BLURRED` branch for 403 / non-ok responses
+    - Remove `targetAmtdPort`, `payloadType`, `ambientCredentialsEnabled` from state and reset entirely
+    - Expose `{ state, executePayload, addLog, resetAttack }`
+    - _Bug_Condition: isBugCondition(X) where X.path = 'hooks/useAgenticExploit.ts' AND X uses wrong AttackState shape_
+    - _Expected_Behavior: Hook uses spec AttackState {status, scenario, targetUrl, logs}; transitions IDLE→ENUMERATING→INJECTING→SUCCESS_STOLEN or FAILED_BLURRED; POSTs to targetUrl with credentials:'include'_
+    - _Preservation: No changes to layout.tsx, TerminalLogEntry.tsx, next.config.js, package.json, tailwind.config.js_
+    - _Requirements: 2.3, 2.4, 2.5_
+
+  - [x] 3.4 Restore `app/globals.css` — remove c3-tokens.css import
+    - Remove the line `@import "./styles/c3-tokens.css";`
+    - Remove all `var(--c3-*)` CSS custom property references (they will be undefined without the import)
+    - Retain `@import "tailwindcss";` as the sole import
+    - Retain the CRT scanline `main::after` keyframe using hardcoded values (no `var(--c3-*)`)
+    - Retain scrollbar styling using hardcoded red/black values
+    - _Bug_Condition: isBugCondition(X) where X.path = 'app/globals.css' AND X.content contains '@import "./styles/c3-tokens.css"'_
+    - _Expected_Behavior: globals.css has only @import "tailwindcss"; no c3-tokens.css import; no var(--c3-*) references_
+    - _Preservation: No changes to layout.tsx, TerminalLogEntry.tsx, next.config.js, package.json, tailwind.config.js_
+    - _Requirements: 2.1, 2.8_
+
+  - [x] 3.5 Restore `app/page.tsx` with all required UI elements
+    - Replace `import { useC2Attack }` with `import { useAgenticExploit }` from `@/hooks/useAgenticExploit`
+    - Update hook destructuring to match spec API: `{ state, executePayload, addLog, resetAttack }`
+    - Add `animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 1.2 }}` to the `<Skull>` icon (pulsing)
+    - Update title to `"AGENTIC_SWARM_C2 // v4.2.0-BETA_BUILD"`
+    - Update scenario toggle to use `'AEGIS_SECURED'` / `'LEGACY_VULNERABLE'` values (not `'AEGIS'` / `'LEGACY'`)
+    - Change button label from `"LAUNCH CSRF PAYLOAD"` to `"SIMULATE CSRF ATTACK"` with styling `bg-red-700 text-black font-black text-xl uppercase py-6`
+    - Add success modal: `AnimatePresence` block for `status === 'SUCCESS_STOLEN'` showing green modal with `"FUNDS ACQUIRED: ₹50,000 REDIRECTED TO OFFSHORE ACCOUNT."`
+    - Ensure catastrophic blur overlay (`backdrop-blur-3xl bg-black/80`) appears with 1.5s delay after the skewX + filter:invert(1) animation completes
+    - _Bug_Condition: isBugCondition(X) where X.path = 'app/page.tsx' AND X imports useC2Attack / missing SUCCESS_STOLEN modal / wrong button label / wrong title / non-pulsing Skull_
+    - _Expected_Behavior: Imports useAgenticExploit; pulsing Skull; title includes '// v4.2.0-BETA_BUILD'; button label 'SIMULATE CSRF ATTACK'; success modal for SUCCESS_STOLEN; scenario toggle uses AEGIS_SECURED/LEGACY_VULNERABLE_
+    - _Preservation: TerminalLogEntry typewriter animation, auto-scroll, reset button on FAILED_BLURRED, button disabled during INJECTING all preserved_
+    - _Requirements: 2.1, 2.4, 2.5, 2.6, 2.7_
+
+  - [x] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - C2 Dashboard Drifted Files Restored
+    - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
+    - The test from task 1 encodes the expected spec state
+    - When this test passes, it confirms all five files match the spec and three extra files are absent
+    - Re-run all file-content assertions from step 1
+    - **EXPECTED OUTCOME**: All assertions PASS (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9_
+
+  - [x] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Unchanged Files Remain Byte-for-Byte Identical
+    - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
+    - Compare hashes of `app/layout.tsx`, `app/TerminalLogEntry.tsx`, `next.config.js`, `package.json`, `tailwind.config.js` against pre-fix baseline
+    - **EXPECTED OUTCOME**: All five files hash-match their pre-fix state (confirms no regressions)
+    - Confirm all preservation tests still pass after fix
+
+- [x] 4. Checkpoint — Ensure all tests pass
+  - Run `npm run type-check` (`tsc --noEmit`) — must complete with zero errors
+  - Verify exploration test (task 1 assertions) all pass
+  - Verify preservation tests (task 2 hashes) all pass
+  - Confirm `app/CSRFInterceptConsole.tsx`, `hooks/useCSRFInterception.ts`, `hooks/useC2Attack.ts` are absent
+  - Ensure all tests pass; ask the user if questions arise

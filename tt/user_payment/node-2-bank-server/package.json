@@ -1,0 +1,16 @@
+{
+  "name": "node-2-bank-server",
+  "version": "1.0.0",
+  "description": "AEGIS Demo — Node 2: Zero-Trust Bank Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "fastify": "^5.8.4",
+    "socket.io": "^4.8.3"
+  }
+}

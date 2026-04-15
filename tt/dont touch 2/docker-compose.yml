@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  c2-node:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_AEGIS_IP=aegis-node
+    depends_on:
+      - aegis-node
+    networks:
+      - secure-network
+
+  aegis-node:
+    # This would be your Node 2 (Rural Bank) service running on port 3000
+    # For now, this is a placeholder
+    image: node:20-alpine
+    command: echo "AEGIS Node would run here"
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    driver: bridge

@@ -1,0 +1,42 @@
+{
+  "name": "agentic-swarm-c2",
+  "version": "4.2.0-BETA_BUILD",
+  "description": "Threat Actor Command & Control (C2) Exploitation Framework - OWASP CSRF Demonstration",
+  "main": "next.config.js",
+  "scripts": {
+    "dev": "next dev -p 6231",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "csrf",
+    "offensive-security",
+    "c2",
+    "exploit",
+    "demonstration",
+    "zero-trust",
+    "aegis"
+  ],
+  "author": "Red Team Operators",
+  "license": "MIT",
+  "dependencies": {
+    "@radix-ui/react-primitive": "^2.0.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "framer-motion": "^10.16.16",
+    "lucide-react": "^0.408.0",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "typescript": "^5.3.3"
+  }
+}

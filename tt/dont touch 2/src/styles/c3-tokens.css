@@ -1,0 +1,86 @@
+/* ============================================================
+   NODE 3 — ATTACKER C2 — DESIGN TOKEN SYSTEM
+   All visual values defined here. Never hardcode elsewhere.
+   ============================================================ */
+
+:root {
+
+  /* ── BACKGROUNDS ─────────────────────────────────────── */
+  --c3-void:      #04060a;   /* Root background — near-black, cold blue tint */
+  --c3-surface:   #080d14;   /* Primary surface — panels, sidebars */
+  --c3-panel:     #0d1520;   /* Card/widget backgrounds */
+  --c3-raised:    #121c28;   /* Input fields, interactive element bg */
+  --c3-overlay:   rgba(4, 6, 10, 0.85); /* Modal/overlay backdrop */
+
+  /* ── BORDERS ─────────────────────────────────────────── */
+  --c3-border:          #1a2535;   /* Default — visible but whisper-quiet */
+  --c3-border-hover:    #243550;   /* On hover/focus */
+  --c3-border-accent:   #2a4060;   /* Highlighted panel */
+  --c3-border-active:   #1a6fc4;   /* Active/selected */
+
+  /* ── OPERATIVE BLUE (primary accent) ─────────────────── */
+  --c3-blue:        #1a6fc4;
+  --c3-blue-bright: #2a8fe8;
+  --c3-blue-dim:    #0d3a6e;
+  --c3-blue-glow:   rgba(26, 111, 196, 0.15);
+  --c3-blue-pulse:  rgba(26, 111, 196, 0.08);
+
+  /* ── EXFIL GREEN (ONLY for confirmed data theft events) ─ */
+  --c3-green:       #00c853;
+  --c3-green-dim:   #00611a;
+  --c3-green-faint: #003d10;
+  --c3-green-glow:  rgba(0, 200, 83, 0.12);
+
+  /* ── AEGIS RED (failure / termination states) ─────────── */
+  --c3-red:         #f44336;
+  --c3-red-bright:  #ff5252;
+  --c3-red-dim:     #7a1010;
+  --c3-red-faint:   #3d0808;
+  --c3-red-glow:    rgba(244, 67, 54, 0.18);
+
+  /* ── WARNING AMBER (uncertain / low probability states) ── */
+  --c3-amber:       #ffa000;
+  --c3-amber-dim:   #7a4c00;
+  --c3-amber-faint: #3d2600;
+
+  /* ── TEXT HIERARCHY ──────────────────────────────────── */
+  --c3-text-primary:   #c8d8e8;   /* Main readable text */
+  --c3-text-secondary: #6a8aaa;   /* Labels, metadata, captions */
+  --c3-text-tertiary:  #3a5470;   /* Disabled, timestamps, placeholders */
+  --c3-text-accent:    #4ab0ff;   /* Highlighted values: IPs, IDs, tokens */
+  --c3-text-critical:  #ff5252;   /* Error states, AEGIS events */
+  --c3-text-success:   #00c853;   /* Confirmed exfil, success ops */
+  --c3-text-warning:   #ffa000;   /* Uncertain states */
+
+  /* ── TYPOGRAPHY ──────────────────────────────────────── */
+  --c3-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+  --c3-font-ui:   'Inter', 'DM Sans', system-ui, sans-serif;
+
+  /* ── SPACING SCALE ───────────────────────────────────── */
+  --c3-space-xs:  4px;
+  --c3-space-sm:  8px;
+  --c3-space-md:  16px;
+  --c3-space-lg:  24px;
+  --c3-space-xl:  40px;
+
+  /* ── BORDER RADIUS ───────────────────────────────────── */
+  --c3-radius-sm: 2px;   /* Badges, tight elements */
+  --c3-radius-md: 4px;   /* Panels, cards */
+  --c3-radius-lg: 6px;   /* Maximum on Node 3 — never exceed this */
+
+  /* ── ANIMATION TIMING ────────────────────────────────── */
+  --c3-t-snap:     80ms;
+  --c3-t-fast:     120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --c3-t-standard: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --c3-t-slow:     500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── AEGIS SEQUENCE TIMINGS (ms) ─────────────────────── */
+  --c3-aegis-t1:  150;   /* Counter freeze */
+  --c3-aegis-t2:  300;   /* Overlay appears */
+  --c3-aegis-t3:  400;   /* Particles die */
+  --c3-aegis-t4:  500;   /* AEGIS node appears */
+  --c3-aegis-t5:  600;   /* Connection line tears */
+  --c3-aegis-t6:  800;   /* Log burst starts */
+  --c3-aegis-t7: 1200;   /* Terminal banner drops */
+  --c3-aegis-t8: 2000;   /* All live dots go dead */
+}
