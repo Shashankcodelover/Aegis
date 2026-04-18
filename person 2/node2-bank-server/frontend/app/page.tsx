@@ -283,6 +283,8 @@ export default function BankPage() {
   const [amtdPort, setAmtdPort] = useState<number | null>(null);
   const [shaking, setShaking] = useState(false);
   const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
+  const [aegisActive, setAegisActive] = useState(false);
+  const [togglingAegis, setTogglingAegis] = useState(false);
 
   // ── Socket setup ──
   useEffect(() => {
@@ -291,6 +293,10 @@ export default function BankPage() {
 
     socket.on('connect', () => setConnected(true));
     socket.on('disconnect', () => setConnected(false));
+
+    socket.on('scenario_changed', ({ scenario }: { scenario: string }) => {
+      setAegisActive(scenario === 'SCENARIO_3');
+    });
 
     socket.on('ledger_update', (entry: LedgerEntry) => {
       setLedger((prev) => [...prev, entry]);
@@ -367,7 +373,15 @@ export default function BankPage() {
       if (loadingBtn) return;
       setLoadingBtn(btnKey);
 
+      // Set scenario via both socket AND HTTP proxy (works from any PC)
       socketRef.current?.emit('set_scenario', { scenario });
+      try {
+        await fetch(`/admin/set-scenario`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario }),
+        });
+      } catch { /* ignore */ }
 
       const txnId = makeTxnId();
 
@@ -399,6 +413,23 @@ export default function BankPage() {
     },
     [loadingBtn, amtdPort]
   );
+
+  // ── AEGIS toggle ──
+  const toggleAegis = useCallback(async () => {
+    if (togglingAegis) return;
+    setTogglingAegis(true);
+    const newScenario = aegisActive ? 'SCENARIO_1' : 'SCENARIO_3';
+    socketRef.current?.emit('set_scenario', { scenario: newScenario });
+    try {
+      await fetch(`/admin/set-scenario`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario: newScenario }),
+      });
+    } catch { /* ignore */ }
+    setAegisActive(!aegisActive);
+    setTogglingAegis(false);
+  }, [aegisActive, togglingAegis]);
 
   // ── Screen shake style ──
   const shakeStyle = shaking
@@ -454,6 +485,19 @@ export default function BankPage() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-stone-400 font-mono">{BANK_HOST}</span>
+              {/* ── AEGIS MASTER TOGGLE ── */}
+              <button
+                onClick={toggleAegis}
+                disabled={togglingAegis}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm border-2 transition-all ${
+                  aegisActive
+                    ? 'bg-blue-700 border-blue-700 text-white hover:bg-blue-800 shadow-lg shadow-blue-200'
+                    : 'bg-white border-stone-300 text-stone-600 hover:border-blue-400 hover:text-blue-700'
+                }`}
+              >
+                <Shield size={16} className={aegisActive ? 'text-white' : 'text-stone-400'} />
+                {togglingAegis ? '...' : aegisActive ? 'AEGIS: ON' : 'AEGIS: OFF'}
+              </button>
               <div
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
                   connected
@@ -467,6 +511,15 @@ export default function BankPage() {
             </div>
           </div>
         </header>
+
+        {/* ── AEGIS STATUS BANNER ── */}
+        {aegisActive && (
+          <div className="bg-blue-700 text-white text-xs font-semibold text-center py-1.5 tracking-widest flex items-center justify-center gap-2">
+            <Shield size={12} />
+            AEGIS ZERO-TRUST PROTECTION ACTIVE — Dual-Channel ZK-Proof Verification Enabled
+            <Shield size={12} />
+          </div>
+        )}
 
         {/* ── 3-COLUMN LAYOUT ── */}
         <main className="flex-1 grid grid-cols-3 gap-6 p-6">

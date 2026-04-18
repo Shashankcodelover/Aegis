@@ -1,4 +1,4 @@
-'use client';
+z'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CSRFInterceptState, VictimPayment, LogEntry, CSRFStatus } from '@/types/exploit';

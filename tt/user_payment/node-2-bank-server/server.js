@@ -11,10 +11,35 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { Server as SocketIOServer } from "socket.io";
+import { io as ioClient } from "socket.io-client";
 import { webcrypto } from "crypto";
 
 const PORT = 5001;
 const SHARD_TTL_MS = 50; // 50ms production window
+const AEGIS_GATEWAY_URL = "http://localhost:5002";
+
+// ── Notify AEGIS gateway via Socket.io client ─────────────────────────────────
+let aegisSocket = null;
+function getAegisSocket() {
+  if (!aegisSocket || !aegisSocket.connected) {
+    aegisSocket = ioClient(AEGIS_GATEWAY_URL, {
+      transports: ["polling", "websocket"],
+      reconnection: true,
+      reconnectionDelay: 5000,
+      reconnectionAttempts: 3,
+      timeout: 3000,
+    });
+    aegisSocket.on("connect_error", () => {}); // silent — AEGIS optional
+  }
+  return aegisSocket;
+}
+function notifyAegisGateway(event, data) {
+  try {
+    const sock = getAegisSocket();
+    if (!sock.connected) sock.connect();
+    sock.emit(event, data);
+  } catch { /* AEGIS offline — ignore */ }
+}
 
 // ── Scenario State ────────────────────────────────────────────────────────────
 let ACTIVE_DEMO_SCENARIO = "SCENARIO_1";
@@ -64,6 +89,10 @@ fastify.post("/admin/set-scenario", async (req, reply) => {
   ACTIVE_DEMO_SCENARIO = scenario;
   console.log(`[Bank] 🎬 Scenario changed → ${ACTIVE_DEMO_SCENARIO}`);
   io?.emit("scenario_changed", { scenario: ACTIVE_DEMO_SCENARIO });
+
+  // Notify AEGIS gateway so dashboard updates its status
+  notifyAegisGateway("scenario_changed", { scenario: ACTIVE_DEMO_SCENARIO, timestamp: Date.now() });
+
   return reply.send({ status: "OK", active: ACTIVE_DEMO_SCENARIO });
 });
 
@@ -101,6 +130,22 @@ fastify.post("/api/transfer", async (req, reply) => {
 
     io?.emit("ledger_update", ledgerEntry);
 
+    // Notify AEGIS gateway — attack succeeded in legacy mode or legit transfer
+    if (isForged) {
+      notifyAegisGateway("payment_attack", {
+        transactionId: txId, amount, receiver: to,
+        sender: "PERSON_3_ATTACKER", attackType: "LEGACY_CSRF_SUCCESS",
+        shardAReceived: true, shardBReceived: false,
+        origin: "PERSON_3_ATTACKER", status: "STOLEN", timestamp: Date.now(),
+      });
+    } else {
+      notifyAegisGateway("payment_success", {
+        transactionId: txId, amount, receiver: to,
+        sender: sender || "PERSON_1", shardAReceived: true, shardBReceived: true,
+        origin: "PERSON_1_LEGITIMATE", status: "APPROVED", timestamp: Date.now(),
+      });
+    }
+
     return reply.send({
       status: "PROCESSED_LEGACY",
       txId,
@@ -125,13 +170,17 @@ fastify.post("/api/transfer", async (req, reply) => {
     if (!shardB) {
       console.warn(`[Bank] 🚨 AEGIS INTERVENTION — Shard B missing — txId=${txId}`);
       io?.emit("aegis_intervention", {
-        id: txId,
-        sender: sender || "UNKNOWN",
-        amount,
-        to,
+        id: txId, sender: sender || "UNKNOWN", amount, to,
         reason: "Asymmetric Transport Failure. WebRTC ZK-Proof Missing.",
         mitigation: "Transaction Terminated. Origin flagged as automated bot.",
         timestamp: new Date().toISOString(),
+      });
+      // Notify AEGIS gateway — attack blocked
+      notifyAegisGateway("payment_attack", {
+        transactionId: txId, amount, receiver: to,
+        sender: "PERSON_3_ATTACKER", attackType: "AEGIS_SHARD_B_MISSING",
+        shardAReceived: true, shardBReceived: false,
+        origin: "PERSON_3_ATTACKER", status: "BLOCKED", timestamp: Date.now(),
       });
       return reply.code(403).send({
         status: "BLOCKED_BY_AEGIS",
@@ -143,17 +192,18 @@ fastify.post("/api/transfer", async (req, reply) => {
     // Both shards present — legitimate transfer in SCENARIO_3
     const hash = await sha256Hex(JSON.stringify({ amount, to }) + JSON.stringify(shardB));
     const ledgerEntry = {
-      id: txId,
-      sender: sender || "Person 1",
-      destination: to,
-      amount,
-      purpose: purpose || "Verified Transfer",
-      status: "LEGITIMATE_SUCCESS",
-      hash: hash.slice(0, 16) + "...",
-      timestamp: new Date().toISOString(),
+      id: txId, sender: sender || "Person 1", destination: to, amount,
+      purpose: purpose || "Verified Transfer", status: "LEGITIMATE_SUCCESS",
+      hash: hash.slice(0, 16) + "...", timestamp: new Date().toISOString(),
       scenario: ACTIVE_DEMO_SCENARIO,
     };
     io?.emit("ledger_update", ledgerEntry);
+    // Notify AEGIS gateway — legit transfer approved
+    notifyAegisGateway("payment_success", {
+      transactionId: txId, amount, receiver: to,
+      sender: sender || "PERSON_1", shardAReceived: true, shardBReceived: true,
+      origin: "PERSON_1_LEGITIMATE", status: "APPROVED", timestamp: Date.now(),
+    });
 
     return reply.send({
       status: "APPROVED",
@@ -516,7 +566,12 @@ fastify.get("/", async (_req, reply) => {
   </div>
 
   <script>
-    const socket = io('http://localhost:5001');
+    const socket = io('http://localhost:5001', {
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 10,
+    });
     let counts = { total: 0, legit: 0, bad: 0 };
     let fabOpen = false;
     let activeScenario = 'SCENARIO_1';

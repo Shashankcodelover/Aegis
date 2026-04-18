@@ -1,0 +1,8 @@
+{
+  "name": "node2-bank-server-root",
+  "private": true,
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "tailwindcss": "^4.2.2"
+  }
+}

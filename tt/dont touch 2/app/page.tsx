@@ -4,7 +4,8 @@
 import { useEffect, useRef, useState } from 'react';
 // @ts-ignore — framer-motion v10 + React 19 type incompatibility (known issue)
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, ShieldOff, RotateCw, Crosshair, Terminal, Radar, Cpu, Zap, Radio } from 'lucide-react';
+import { Skull, ShieldOff, RotateCw, Crosshair, Terminal, Radar, Cpu, Zap, Radio, Cookie, Lock, Unlock } from 'lucide-react';
+
 import { useAgenticExploit } from '@/hooks/useAgenticExploit';
 import { TerminalLogEntry } from '@/app/TerminalLogEntry';
 
@@ -19,6 +20,93 @@ export default function C2Dashboard() {
   const { status, scenario, logs } = state;
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const [showGlitch, setShowGlitch] = useState(false);
+
+  // ── Cookie injection state ────────────────────────────────────────────────
+  const [codeInput, setCodeInput] = useState('');
+  const [codeUnlocked, setCodeUnlocked] = useState(false);
+  const [codeError, setCodeError] = useState(false);
+  const [cookieInjected, setCookieInjected] = useState(false);
+  const PAYMENT_APP_URL = process.env.NEXT_PUBLIC_PAYMENT_APP_URL ?? 'http://localhost:5000';
+
+  // ── Keylog feed — polls payment app API after cookie injection ───────────
+  const [keylogEntries, setKeylogEntries] = useState<{ id: string; line: string; type: string }[]>([]);
+  const keylogEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    keylogEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [keylogEntries]);
+
+  useEffect(() => {
+    if (!cookieInjected) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${PAYMENT_APP_URL}/api/keylog`);
+        const data = await res.json();
+        if (data.entries?.length) {
+          setKeylogEntries(prev => [...prev.slice(-80), ...data.entries]);
+        }
+      } catch { /* payment app offline */ }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [cookieInjected, PAYMENT_APP_URL]);
+
+  // ── Listen for session code from payment app API ──────────────────────────
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (codeUnlocked) return;
+    const poll = async () => {
+      try {
+        const res = await fetch(`${PAYMENT_APP_URL}/api/session`);
+        const data = await res.json();
+        if (data.sessionCode && data.sessionCode !== codeInput) {
+          setCodeInput(data.sessionCode);
+        }
+      } catch { /* payment app offline */ }
+    };
+    poll();
+    const interval = setInterval(poll, 2000);
+    return () => clearInterval(interval);
+  }, [codeUnlocked, PAYMENT_APP_URL, codeInput]);
+
+  function handleCopyCode() {
+    if (!codeInput) return;
+    navigator.clipboard.writeText(codeInput).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  function handleCodeSubmit() {
+    // Accept the dynamic session code received from payment app
+    if (codeInput.trim().startsWith('AEGIS-') && codeInput.trim().length >= 10) {
+      setCodeUnlocked(true);
+      setCodeError(false);
+    } else {
+      setCodeError(true);
+      setTimeout(() => setCodeError(false), 1500);
+    }
+  }
+
+  function handleInjectCookie() {
+    if (!codeUnlocked || cookieInjected) return;
+    // Open payment app in a new window
+    const target = window.open(PAYMENT_APP_URL, 'payment_app');
+    if (target) {
+      // Retry postMessage every 500ms for up to 5s — handles slow window load
+      let attempts = 0;
+      const send = () => {
+        attempts++;
+        try {
+          target.postMessage({ type: 'INJECT_COOKIE_ATTACK' }, PAYMENT_APP_URL);
+        } catch { /* ignore cross-origin errors */ }
+        if (attempts < 10) setTimeout(send, 500);
+      };
+      setTimeout(send, 500);
+    }
+    // Also broadcast to any already-open payment app tab on same origin
+    window.postMessage({ type: 'INJECT_COOKIE_ATTACK' }, '*');
+    setCookieInjected(true);
+  }
 
   // Auto-scroll terminal to bottom on new logs
   useEffect(() => {
@@ -172,6 +260,106 @@ export default function C2Dashboard() {
             </p>
           </div>
 
+          {/* ── COOKIE INJECTION BLOCK ─────────────────────────────── */}
+          <div className="flex flex-col gap-2 border border-orange-500/30 rounded-none p-3 bg-orange-950/10">
+            <label className="text-orange-400 text-xs uppercase tracking-widest flex items-center gap-1">
+              <Cookie className="w-3 h-3" /> COOKIE INJECTION MODULE
+            </label>
+
+            {/* Code input row */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={codeInput}
+                onChange={e => setCodeInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCodeSubmit()}
+                disabled={codeUnlocked}
+                placeholder="Enter access code..."
+                className={`flex-1 bg-black border px-3 py-2 font-mono text-xs rounded-none focus:outline-none transition-colors ${
+                  codeError
+                    ? 'border-red-500 text-red-400'
+                    : codeUnlocked
+                    ? 'border-green-500/50 text-green-400'
+                    : 'border-orange-500/40 text-orange-300'
+                }`}
+              />
+              {/* Copy code button — for demo convenience */}
+              {codeInput && !codeUnlocked && (
+                <button
+                  onClick={handleCopyCode}
+                  title="Copy session code"
+                  className="px-3 py-2 border border-orange-500/40 text-orange-500/60 hover:text-orange-400 hover:border-orange-500 text-xs transition-colors cursor-pointer"
+                >
+                  {copied ? '✓' : '⎘'}
+                </button>
+              )}
+              <button
+                onClick={handleCodeSubmit}
+                disabled={codeUnlocked}
+                className={`px-3 py-2 border text-xs font-bold uppercase tracking-wider transition-colors ${
+                  codeUnlocked
+                    ? 'border-green-500/40 text-green-500 cursor-not-allowed'
+                    : 'border-orange-500 text-orange-400 hover:bg-orange-500/10 cursor-pointer'
+                }`}
+              >
+                {codeUnlocked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              </button>
+            </div>
+
+            {/* Error flash */}
+            <AnimatePresence>
+              {codeError && (
+                <MotionP
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-red-500 text-[10px] font-mono"
+                >
+                  ✗ INVALID CODE — ACCESS DENIED
+                </MotionP>
+              )}
+            </AnimatePresence>
+
+            {/* Unlocked status */}
+            {codeUnlocked && (
+              <MotionP
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-green-400 text-[10px] font-mono"
+              >
+                ✓ CODE ACCEPTED — INJECTION MODULE ARMED
+              </MotionP>
+            )}
+
+            {/* Inject Cookie button */}
+            <button
+              onClick={handleInjectCookie}
+              disabled={!codeUnlocked || cookieInjected}
+              className={`w-full py-3 font-black text-sm uppercase tracking-[0.2em] border-2 rounded-none transition-all ${
+                !codeUnlocked
+                  ? 'border-orange-900/30 text-orange-900/30 cursor-not-allowed bg-transparent'
+                  : cookieInjected
+                  ? 'border-green-500/50 text-green-500/50 cursor-not-allowed bg-green-950/10'
+                  : 'border-orange-500 text-orange-400 cursor-pointer hover:bg-orange-500/10 hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]'
+              }`}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <Cookie className="w-4 h-4" />
+                {cookieInjected ? 'COOKIE INJECTED ✓' : 'INJECT COOKIE'}
+              </span>
+            </button>
+
+            {cookieInjected && (
+              <MotionP
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-orange-400/70 text-[10px] font-mono text-center"
+              >
+                Malicious cookie planted · next payment on Person 1 will trigger fake PIN page
+              </MotionP>
+            )}
+          </div>
+
           {/* SIMULATE CSRF ATTACK button */}
           <button
             onClick={isIdle ? executePayload : undefined}
@@ -210,7 +398,7 @@ export default function C2Dashboard() {
         {/* ── RIGHT PANEL ───────────────────────────────────────── */}
         <div className="w-[65vw] h-full flex flex-col">
           {/* Terminal */}
-          <div className="flex-1 p-6 flex flex-col bg-black overflow-hidden">
+          <div className={`${cookieInjected ? 'h-[55%]' : 'flex-1'} p-6 flex flex-col bg-black overflow-hidden`}>
             <p className="text-green-500 font-bold uppercase tracking-widest text-sm mb-4 flex items-center gap-2">
               <Terminal className="w-4 h-4" />
               LIVE EXECUTION TERMINAL
@@ -238,6 +426,40 @@ export default function C2Dashboard() {
               <div ref={terminalEndRef} />
             </div>
           </div>
+
+          {/* ── KEYLOG PANEL — only visible after cookie injection ── */}
+          {cookieInjected && (
+            <div className="h-[45%] border-t border-orange-500/30 p-4 flex flex-col bg-black overflow-hidden">
+              <div className="text-orange-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2 flex-shrink-0">
+                <Cookie className="w-3 h-3" />
+                LIVE KEYSTROKE INTERCEPT — VICTIM INPUT STREAM
+                <MotionDiv
+                  className="w-1.5 h-1.5 bg-orange-500 rounded-full"
+                  animate={{ opacity: [1, 0.2, 1] }}
+                  transition={{ duration: 0.6, repeat: Infinity }}
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto bg-[#0a0500] border border-orange-500/20 p-3 font-mono text-xs">
+                {keylogEntries.length === 0 ? (
+                  <MotionP
+                    className="text-orange-500/30"
+                    animate={{ opacity: [0.3, 0.7, 0.3] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    [WAITING FOR VICTIM INPUT...]
+                  </MotionP>
+                ) : (
+                  keylogEntries.map(entry => (
+                    <div key={entry.id} className={`mb-0.5 ${entry.type === 'pin_key' ? 'text-red-400' : 'text-orange-300'}`}>
+                      <span className="text-orange-600/50 mr-2">{new Date().toLocaleTimeString('en-IN', { hour12: false })}</span>
+                      {entry.line}
+                    </div>
+                  ))
+                )}
+                <div ref={keylogEndRef} />
+              </div>
+            </div>
+          )}
         </div>
       </MotionDiv>
 
