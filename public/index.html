@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AEGIS | Zero-Trust Dual-Channel Payload Sharding Defense System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- Master SOC Header -->
+  <header class="soc-header">
+    <div class="header-inner">
+      <div class="soc-brand">
+        <div class="soc-logo">🛡️</div>
+        <div class="brand-titles">
+          <h1>AEGIS DEFENSE SOC</h1>
+          <p>Zero-Knowledge Behavioral Proof & Dual-Channel Payload Sharding</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="amtd-badge">
+          <span class="amtd-pulse"></span>
+          <span id="amtd-port-badge">PORT: 49152</span>
+          <small style="color: #94a3b8; margin-left: 4px;">(AMTD 5s)</small>
+        </div>
+
+        <div class="mode-toggle-group">
+          <button id="btn-mode-aegis" class="mode-btn active aegis">🛡️ AEGIS Active</button>
+          <button id="btn-mode-legacy" class="mode-btn">⚠️ Legacy Unprotected</button>
+        </div>
+
+        <button id="btn-reset-system" class="mode-btn" style="background: rgba(255,255,255,0.06); color: #e2e8f0;">
+          🔄 Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SOC Stats Banner -->
+  <section class="soc-stats-banner">
+    <div class="stat-tile">
+      <div class="stat-glyph" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7;">🏦</div>
+      <div>
+        <div class="stat-number" id="stat-balance" style="color: #6ee7b7;">₹250,000</div>
+        <div class="stat-label">Gramin Bank Vault Balance</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-glyph" style="background: rgba(6, 182, 212, 0.15); color: #67e8f9;">✔</div>
+      <div>
+        <div class="stat-number" id="stat-approved">0</div>
+        <div class="stat-label">Authorized Human Transfers</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-glyph" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5;">🛑</div>
+      <div>
+        <div class="stat-number" id="stat-blocked" style="color: #fca5a5;">0</div>
+        <div class="stat-label">Intercepted Cyber Attacks</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-glyph" style="background: rgba(168, 85, 247, 0.15); color: #d8b4fe;">📡</div>
+      <div>
+        <div class="stat-number" id="stat-amtd" style="color: #d8b4fe;">49152</div>
+        <div class="stat-label">Active AMTD Rotation Port</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main 4-Quadrant Operations Grid -->
+  <main class="soc-grid">
+
+    <!-- QUADRANT 1: NODE 1 - DEFENDER PHONE -->
+    <div class="soc-quadrant">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>📱</span> Node 1: Defender Client (Gong Pay)
+        </div>
+        <span class="node-pill" style="background: rgba(6, 182, 212, 0.15); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3);">
+          HONEST USER
+        </span>
+      </div>
+
+      <div class="phone-frame">
+        <div class="phone-screen-header">
+          <span>Gong UPI Instant Pay</span>
+          <span style="color: #10b981;">● Online / WebRTC Ready</span>
+        </div>
+
+        <div class="phone-merchant-card">
+          <div class="merchant-avatar">🏪</div>
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">Gong Organic Superstore</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">UPI ID: gong_retail@graminbank</div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin: 0.25rem 0;">
+          <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Amount to Transfer</div>
+          <div style="font-size: 1.75rem; font-weight: 800; color: #fff; font-family: var(--font-mono);">₹5,000.00</div>
+        </div>
+
+        <!-- Biometric Entropy Tracker Area -->
+        <div class="entropy-tracker-area">
+          <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 0.35rem; display: flex; justify-content: space-between;">
+            <span>HARDWARE MOUSE ENTROPY TRACKER (MOVE CURSOR HERE)</span>
+            <span style="color: #10b981;">L2 BIOMETRIC OK</span>
+          </div>
+          <canvas id="entropy-canvas"></canvas>
+          <div class="entropy-meta">
+            <span>Shannon Entropy: <strong id="lbl-entropy-val" style="color: #fff;">3.42</strong></span>
+            <span>Captured: <strong id="lbl-sample-count" style="color: #fff;">24 pts</strong></span>
+          </div>
+        </div>
+
+        <button id="btn-pay-user" class="btn-pay">
+          ⚡ Pay ₹5,000 via Dual-Channel Shard
+        </button>
+      </div>
+    </div>
+
+    <!-- QUADRANT 2: NODE 2 - BANK VAULT SERVER -->
+    <div class="soc-quadrant">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>🏦</span> Node 2: Gramin Bank Vault Server
+        </div>
+        <span class="node-pill" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3);">
+          ZERO-TRUST VAULT
+        </span>
+      </div>
+
+      <div class="vault-status-box">
+        <div class="vault-lock-state">
+          <div class="lock-icon">🔒</div>
+          <div>
+            <div id="vault-status-text" style="font-weight: 800; font-size: 1rem; color: #10b981;">VAULT ARMED & READY</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">50ms Temporal Shard Window Active</div>
+          </div>
+        </div>
+        <div class="sync-window-gauge">
+          <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">Temporal Sync Delta</div>
+          <div id="sync-delta-display" class="sync-delta-val">Δt = 0ms</div>
+        </div>
+      </div>
+
+      <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">VERIFIED TRANSACTION LEDGER:</div>
+      <div style="overflow-x: auto; flex-grow: 1;">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>TX ID</th>
+              <th>Recipient</th>
+              <th>Amount</th>
+              <th>Sync Δt</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-tbody">
+            <tr>
+              <td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">No transactions recorded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QUADRANT 3: NODE 3 - ATTACKER C2 TERMINAL -->
+    <div class="soc-quadrant">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>💀</span> Node 3: Attacker C2 Command Center
+        </div>
+        <span class="node-pill" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
+          THREAT ACTOR
+        </span>
+      </div>
+
+      <div class="c2-terminal">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(239,68,68,0.3); padding-bottom: 0.5rem;">
+          <span>ROOT@C2-DARKNET-ORBITAL:~#</span>
+          <span style="color: #ef4444;">ACTIVE INJECTION VECTORS (4)</span>
+        </div>
+
+        <div style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.4;">
+          Target: Gramin Bank UPI Endpoint. Goal: Drain Node 1 funds via session forgery, headless AI agents, or desync timing manipulation.
+        </div>
+
+        <div class="c2-attack-btn-grid">
+          <button id="btn-atk-csrf" class="btn-attack">
+            💣 Launch Classic CSRF
+            <span>Hidden iframe POST | Shard A Only</span>
+          </button>
+          <button id="btn-atk-bot" class="btn-attack">
+            🤖 Launch Agentic AI Bot
+            <span>Headless click | Synthetic 0-Entropy</span>
+          </button>
+          <button id="btn-atk-desync" class="btn-attack">
+            ⏱️ Launch Temporal Desync
+            <span>Shard B delayed 250ms (> 50ms)</span>
+          </button>
+          <button id="btn-atk-amtd" class="btn-attack">
+            📡 Launch AMTD Port Scan
+            <span>Hit retired rotating tunnel port</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 1rem; font-size: 0.75rem; color: #94a3b8; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; border-left: 2px solid var(--ruby-neon);">
+        <strong>💡 Live Attack Mechanics:</strong> In <em>AEGIS Active Mode</em>, every attack is violently dropped with 0 funds lost. Switch to <em>Legacy Unprotected</em> to observe funds being stolen!
+      </div>
+    </div>
+
+    <!-- QUADRANT 4: MASTER SOC RADAR & INTERCEPTION STREAM -->
+    <div class="soc-quadrant">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>📡</span> AEGIS 5-Layer Defense Operations
+        </div>
+        <span id="defense-mode-indicator" class="node-pill" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3);">
+          ZERO-TRUST DUAL-CHANNEL ENFORCED
+        </span>
+      </div>
+
+      <!-- 5-Layer Defense Matrix -->
+      <div class="layers-matrix">
+        <div class="layer-card active">
+          <div class="layer-num">LAYER 1</div>
+          <div class="layer-name">User Activation</div>
+        </div>
+        <div class="layer-card active">
+          <div class="layer-num">LAYER 2</div>
+          <div class="layer-name">Biometric Entropy</div>
+        </div>
+        <div class="layer-card active">
+          <div class="layer-num">LAYER 3</div>
+          <div class="layer-name">AMTD Tunnel</div>
+        </div>
+        <div class="layer-card active">
+          <div class="layer-num">LAYER 4</div>
+          <div class="layer-name">WebRTC Shard B</div>
+        </div>
+        <div class="layer-card active">
+          <div class="layer-num">LAYER 5</div>
+          <div class="layer-name">50ms Sync Vault</div>
+        </div>
+      </div>
+
+      <!-- Real-Time Dual-Channel Particle Beam Canvas -->
+      <canvas id="transport-canvas"></canvas>
+
+      <!-- Live Threat Stream Feed -->
+      <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">REAL-TIME INTERCEPTION STREAM:</div>
+      <div id="threat-stream" class="threat-stream">
+        <div style="color: #64748b; text-align: center; padding: 1rem;">AEGIS Defense Core listening on port 5050. All telemetry active.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/js/aegis_app.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+﻿{
+  "name": "aegis-cyber-defense",
+  "version": "1.0.0",
+  "description": "AEGIS: Zero-Knowledge Behavioral Proof Dual-Channel Payload Sharding Defense System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "python tests/playwright_aegis_test.py"
+  },
+  "keywords": [
+    "cybersecurity",
+    "zero-trust",
+    "csrf-defense",
+    "zk-proofs",
+    "behavioral-biometrics",
+    "dual-channel-transport",
+    "webrtc",
+    "amtd"
+  ],
+  "author": "Shashank J",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  }
+}

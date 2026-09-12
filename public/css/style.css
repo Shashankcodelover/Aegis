@@ -1,0 +1,540 @@
+﻿:root {
+  --bg-dark: #070b14;
+  --bg-card: rgba(13, 20, 36, 0.8);
+  --bg-card-hover: rgba(22, 33, 58, 0.9);
+  --border-cyan: rgba(6, 182, 212, 0.25);
+  --border-muted: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-dim: #94a3b8;
+  --cyan-neon: #06b6d4;
+  --emerald-neon: #10b981;
+  --ruby-neon: #ef4444;
+  --gold-neon: #f59e0b;
+  --purple-neon: #a855f7;
+  --font-main: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(239, 68, 68, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 50% 85%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Header */
+.soc-header {
+  background: rgba(7, 11, 20, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-cyan);
+  padding: 0.85rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.soc-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.soc-logo {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.brand-titles h1 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(to right, #ffffff, #67e8f9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-titles p {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.amtd-badge {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #d8b4fe;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.amtd-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--purple-neon);
+  animation: pulse-purple 2s infinite;
+}
+
+@keyframes pulse-purple {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(168, 85, 247, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+}
+
+.mode-toggle-group {
+  display: flex;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn.active.aegis {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.mode-btn.active.legacy {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* SOC Stats Banner */
+.soc-stats-banner {
+  max-width: 1600px;
+  margin: 1.5rem auto 0;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.stat-tile {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.stat-tile:hover {
+  border-color: var(--border-cyan);
+}
+
+.stat-glyph {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.stat-number {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.2rem;
+}
+
+/* Main 4-Quadrant SOC Grid */
+.soc-grid {
+  max-width: 1600px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1180px) {
+  .soc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.soc-quadrant {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.quadrant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.quadrant-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.node-pill {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Quadrant 1: Defender Phone Skin */
+.phone-frame {
+  background: #0b1120;
+  border: 2px solid #1e293b;
+  border-radius: 28px;
+  padding: 1.25rem;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 12px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.phone-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.phone-merchant-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.merchant-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.entropy-tracker-area {
+  background: #060913;
+  border: 1px dashed rgba(6, 182, 212, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  position: relative;
+  text-align: center;
+  user-select: none;
+  cursor: crosshair;
+}
+
+#entropy-canvas {
+  width: 100%;
+  height: 110px;
+  display: block;
+  border-radius: 6px;
+  background: #030712;
+}
+
+.entropy-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--cyan-neon);
+}
+
+.btn-pay {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid #3b82f6;
+  color: white;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-pay:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+}
+
+/* Quadrant 2: Bank Vault Server */
+.vault-status-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.vault-lock-state {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lock-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--emerald-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.sync-window-gauge {
+  background: #030712;
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.sync-delta-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--emerald-neon);
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+.ledger-table th {
+  text-align: left;
+  padding: 0.6rem 0.85rem;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.ledger-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+/* Quadrant 3: Attacker C2 */
+.c2-terminal {
+  background: #060911;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #fca5a5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.c2-attack-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.btn-attack {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.btn-attack:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: var(--ruby-neon);
+  transform: translateY(-1px);
+}
+
+.btn-attack span {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+/* Quadrant 4: Master SOC Radar & Interception Feed */
+.layers-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.layer-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+}
+
+.layer-card.active {
+  border-color: var(--emerald-neon);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.layer-num {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+
+.layer-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 0.15rem;
+}
+
+.threat-stream {
+  background: #030712;
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.threat-entry {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid var(--ruby-neon);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+}
+
+.threat-entry.APPROVED {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: var(--emerald-neon);
+}
+
+/* Particle Canvas */
+#transport-canvas {
+  width: 100%;
+  height: 70px;
+  background: #030712;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-muted);
+  margin-bottom: 1rem;
+}
