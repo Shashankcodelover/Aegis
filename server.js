@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +7,7 @@ const path = require('path');
 const { Server: SocketIOServer } = require('socket.io');
 
 const engine = require('./core/aegis_engine');
+const aegisTopology = require('./core/aegisTopologyService');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(express.text({ type: ['text/*', 'application/csv', 'text/csv'], limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
 
@@ -230,6 +232,115 @@ app.post('/api/reset', (req, res) => {
   engine.defenseMode = 'AEGIS_ACTIVE';
   io.emit('system_reset', engine.getStats());
   res.json({ status: 'RESET_COMPLETE', stats: engine.getStats() });
+});
+
+// =========================================================================
+// Enterprise Zero-Trust Relational Topology & Batch Ingestion Endpoints
+// =========================================================================
+
+// Telemetry & Metrics
+app.get('/api/topology/telemetry', (req, res) => {
+  res.json(aegisTopology.getTelemetry());
+});
+
+// Corridors CRUD & 1-Click Sever
+app.get('/api/topology/corridors', (req, res) => {
+  res.json(aegisTopology.getAllCorridors());
+});
+
+app.post('/api/topology/corridors', (req, res) => {
+  try {
+    const corridor = aegisTopology.createCorridor(req.body);
+    res.status(201).json(corridor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/topology/corridors/:id/sever', (req, res) => {
+  try {
+    const corridor = aegisTopology.severCorridor(req.params.id);
+    res.json({ success: true, corridor, telemetry: aegisTopology.getTelemetry() });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+app.post('/api/topology/corridors/:id/restore', (req, res) => {
+  try {
+    const corridor = aegisTopology.restoreCorridor(req.params.id);
+    res.json({ success: true, corridor, telemetry: aegisTopology.getTelemetry() });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+app.delete('/api/topology/corridors/:id', (req, res) => {
+  const result = aegisTopology.deleteCorridor(req.params.id);
+  if (!result.deleted) return res.status(404).json({ error: 'Corridor not found' });
+  res.json({ success: true, corridorId: req.params.id, telemetry: aegisTopology.getTelemetry() });
+});
+
+// Universal corridor purge
+app.delete('/api/topology/corridors', (req, res) => {
+  const result = aegisTopology.purgeAllCorridors();
+  res.json({ success: true, ...result, telemetry: aegisTopology.getTelemetry() });
+});
+
+// High-Throughput Batch Ingestion for Corridors
+app.post('/api/topology/corridors/upload', (req, res) => {
+  try {
+    const format = req.query.format || 'auto';
+    const payload = req.body;
+    const result = aegisTopology.ingestCorridorsBatch(payload, format);
+    res.json({ ...result, telemetry: aegisTopology.getTelemetry() });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Nodes CRUD & Cascading Deletion
+app.get('/api/topology/nodes', (req, res) => {
+  res.json(aegisTopology.getAllNodes());
+});
+
+app.post('/api/topology/nodes', (req, res) => {
+  try {
+    const node = aegisTopology.createNode(req.body);
+    res.status(201).json(node);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/api/topology/nodes/:id', (req, res) => {
+  const result = aegisTopology.deleteNode(req.params.id);
+  if (!result.deleted) return res.status(404).json({ error: result.message });
+  res.json({ success: true, ...result, telemetry: aegisTopology.getTelemetry() });
+});
+
+// Universal node & cascading corridor purge
+app.delete('/api/topology/nodes', (req, res) => {
+  const result = aegisTopology.purgeAllNodes();
+  res.json({ success: true, ...result, telemetry: aegisTopology.getTelemetry() });
+});
+
+// High-Throughput Batch Ingestion for Nodes
+app.post('/api/topology/nodes/upload', (req, res) => {
+  try {
+    const format = req.query.format || 'auto';
+    const payload = req.body;
+    const result = aegisTopology.ingestNodesBatch(payload, format);
+    res.json({ ...result, telemetry: aegisTopology.getTelemetry() });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Reset defaults
+app.post('/api/topology/reset', (req, res) => {
+  aegisTopology.resetTopologyDefaults();
+  res.json({ success: true, telemetry: aegisTopology.getTelemetry() });
 });
 
 // Catch-all: serve index.html

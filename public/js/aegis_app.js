@@ -1,4 +1,4 @@
-﻿// AEGIS Client Application & Multi-Node Controller
+// AEGIS Client Application & Multi-Node Controller
 
 const socket = io();
 
@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initControls();
   fetchStats();
   setupSocketListeners();
+  initEnterpriseMesh();
 });
 
 // 1. Socket Event Listeners
@@ -422,3 +423,418 @@ function handleTransactionResult(result) {
     threatStream.prepend(entry);
   }
 }
+
+// 8. ENTERPRISE TOPOLOGY MESH & BATCH INGESTION CONTROLLER
+let currentTopology = { corridors: [], nodes: [], telemetry: {} };
+
+function initEnterpriseMesh() {
+  // Quick nav
+  const btnNavMesh = document.getElementById('btn-nav-mesh');
+  if (btnNavMesh) {
+    btnNavMesh.addEventListener('click', () => {
+      document.getElementById('mesh-section')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  const btnNavIngest = document.getElementById('btn-nav-ingest');
+  if (btnNavIngest) {
+    btnNavIngest.addEventListener('click', () => {
+      document.getElementById('ingestion-section')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // Refresh mesh button
+  const btnRefreshTopology = document.getElementById('btn-refresh-topology');
+  if (btnRefreshTopology) {
+    btnRefreshTopology.addEventListener('click', () => {
+      refreshAegisTopology();
+    });
+  }
+
+  // Provision Corridor Modal controls
+  const modal = document.getElementById('modal-provision-corridor');
+  const btnOpenModal = document.getElementById('btn-open-provision-modal');
+  const btnCloseModal = document.getElementById('btn-close-corridor-modal');
+  const btnCancelModal = document.getElementById('btn-cancel-provision');
+  const formProvision = document.getElementById('form-provision-corridor');
+
+  if (btnOpenModal && modal) {
+    btnOpenModal.addEventListener('click', () => {
+      modal.classList.add('active');
+    });
+  }
+
+  if (btnCloseModal && modal) {
+    btnCloseModal.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+  }
+
+  if (btnCancelModal && modal) {
+    btnCancelModal.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+  }
+
+  if (formProvision) {
+    formProvision.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('modal-corridor-id').value.trim();
+      const sourceNode = document.getElementById('modal-source-node').value;
+      const targetNode = document.getElementById('modal-target-node').value;
+      const channelType = document.getElementById('modal-channel-type').value;
+      const entropyFloor = parseFloat(document.getElementById('modal-entropy-floor').value) || 3.5;
+
+      try {
+        const res = await fetch('/api/topology/corridors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, sourceNode, targetNode, channelType, entropyFloor })
+        });
+        const data = await res.json();
+        if (data.success) {
+          modal.classList.remove('active');
+          formProvision.reset();
+          refreshAegisTopology();
+          logIngestOutput(`[SUCCESS] Provisioned new Corridor: ${id} (${channelType})`);
+        } else {
+          alert(`Failed to provision corridor: ${data.error}`);
+        }
+      } catch (err) {
+        console.error('Provisioning error:', err);
+        alert('Provisioning failed: ' + err.message);
+      }
+    });
+  }
+
+  // Batch Ingestion Studio controls
+  const entitySelect = document.getElementById('ingest-entity');
+  const formatSelect = document.getElementById('ingest-format');
+  const btnLoadTemplate = document.getElementById('btn-load-template');
+  const btnExecuteIngest = document.getElementById('btn-execute-ingest');
+  const btnUniversalPurge = document.getElementById('btn-universal-purge');
+
+  if (btnLoadTemplate) {
+    btnLoadTemplate.addEventListener('click', () => {
+      loadIngestionTemplate();
+    });
+  }
+
+  if (entitySelect) {
+    entitySelect.addEventListener('change', () => {
+      loadIngestionTemplate();
+    });
+  }
+
+  if (formatSelect) {
+    formatSelect.addEventListener('change', () => {
+      loadIngestionTemplate();
+    });
+  }
+
+  if (btnExecuteIngest) {
+    btnExecuteIngest.addEventListener('click', () => {
+      executeBatchIngest();
+    });
+  }
+
+  if (btnUniversalPurge) {
+    btnUniversalPurge.addEventListener('click', () => {
+      triggerUniversalPurge();
+    });
+  }
+
+  // Initialize data
+  refreshAegisTopology();
+  loadIngestionTemplate();
+}
+
+// Fetch & render topology
+async function refreshAegisTopology() {
+  try {
+    const res = await fetch('/api/topology/overview');
+    const data = await res.json();
+    currentTopology = data;
+    renderTopologyUI(data);
+  } catch (err) {
+    console.error('Failed to load topology overview:', err);
+  }
+}
+
+function renderTopologyUI(data) {
+  const { corridors, nodes, telemetry } = data;
+
+  // Render Telemetry Strip
+  if (telemetry) {
+    const kpiCorridors = document.getElementById('kpi-corridors-count');
+    const kpiEntropy = document.getElementById('kpi-avg-entropy');
+    const kpiNodes = document.getElementById('kpi-nodes-count');
+    const kpiRecomb = document.getElementById('kpi-recomb-sla');
+    const kpiDispatched = document.getElementById('kpi-shards-dispatched');
+
+    if (kpiCorridors) kpiCorridors.textContent = telemetry.activeCorridors ?? corridors.filter(c => c.status === 'ACTIVE').length;
+    if (kpiEntropy) kpiEntropy.textContent = `${(telemetry.avgEntropy ?? 3.85).toFixed(2)} bits`;
+    if (kpiNodes) kpiNodes.textContent = telemetry.governedNodesCount ?? nodes.length;
+    if (kpiRecomb) kpiRecomb.textContent = `${telemetry.recombinationSlaLimitMs ?? 50} ms`;
+    if (kpiDispatched) kpiDispatched.textContent = telemetry.totalDispatchedShards ?? 0;
+  }
+
+  // Populate Modal Selects
+  const srcSelect = document.getElementById('modal-source-node');
+  const tgtSelect = document.getElementById('modal-target-node');
+  if (srcSelect && tgtSelect) {
+    const optionsHtml = nodes.map(n => `<option value="${n.id}">${n.name} (${n.id})</option>`).join('');
+    srcSelect.innerHTML = optionsHtml;
+    tgtSelect.innerHTML = optionsHtml;
+    if (nodes.length > 1) tgtSelect.selectedIndex = 1;
+  }
+
+  // Render Corridors Table
+  const corridorsTbody = document.getElementById('corridors-tbody');
+  if (corridorsTbody) {
+    if (!corridors || corridors.length === 0) {
+      corridorsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b; padding:1rem;">No sharding corridors provisioned.</td></tr>';
+    } else {
+      corridorsTbody.innerHTML = corridors.map(c => {
+        const isSevered = c.status === 'SEVERED';
+        const severBtn = isSevered
+          ? `<button class="btn-action-sm restore" onclick="restoreCorridor('${c.id}')">Restore</button>`
+          : `<button class="btn-action-sm danger" onclick="severCorridor('${c.id}')">Sever</button>`;
+        const delBtn = `<button class="btn-action-sm danger" onclick="deleteCorridor('${c.id}')">Drop</button>`;
+
+        return `
+          <tr>
+            <td><strong style="font-family: var(--font-mono); color: #67e8f9;">${c.id}</strong></td>
+            <td><span style="font-family: var(--font-mono); font-size: 0.75rem;">${c.sourceNode} → ${c.targetNode}</span></td>
+            <td><span style="font-size: 0.72rem; color: ${c.channelType === 'IN_BAND_AMTD' ? '#a855f7' : '#06b6d4'}; font-weight: 600;">${c.channelType}</span></td>
+            <td><span class="status-badge ${c.status}">${c.status}</span></td>
+            <td><span style="font-family: var(--font-mono); color: #f59e0b;">${c.entropyFloor ?? '3.5'} bits</span></td>
+            <td>${severBtn}${delBtn}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  // Render Endpoint Nodes Table
+  const nodesTbody = document.getElementById('nodes-tbody');
+  if (nodesTbody) {
+    if (!nodes || nodes.length === 0) {
+      nodesTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b; padding:1rem;">No endpoint nodes governed.</td></tr>';
+    } else {
+      nodesTbody.innerHTML = nodes.map(n => `
+        <tr>
+          <td><strong style="font-family: var(--font-mono); color: #6ee7b7;">${n.id}</strong></td>
+          <td>
+            <div style="font-weight: 600; font-size: 0.78rem;">${n.name}</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">${n.role}</div>
+          </td>
+          <td><span style="font-family: var(--font-mono); font-size: 0.72rem; color: #94a3b8;">${n.ipAddress}</span></td>
+          <td>
+            <button class="btn-action-sm danger" onclick="deleteNode('${n.id}')" title="Cascade severs connected corridors">
+              Cascade Del
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+}
+
+// 1-Click Sever
+window.severCorridor = async function(id) {
+  try {
+    const res = await fetch(`/api/topology/corridors/${id}/sever`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      logIngestOutput(`[ACTION] 1-Click Severed Corridor ${id}. Dual-channel flow halted.`);
+      refreshAegisTopology();
+    } else {
+      alert(`Sever failed: ${data.error}`);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// 1-Click Restore
+window.restoreCorridor = async function(id) {
+  try {
+    const res = await fetch(`/api/topology/corridors/${id}/restore`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      logIngestOutput(`[ACTION] Restored Corridor ${id}. Dual-channel transmission resumed.`);
+      refreshAegisTopology();
+    } else {
+      alert(`Restore failed: ${data.error}`);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Delete Corridor
+window.deleteCorridor = async function(id) {
+  if (!confirm(`Are you sure you want to drop sharding corridor ${id}?`)) return;
+  try {
+    const res = await fetch(`/api/topology/corridors/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      logIngestOutput(`[ACTION] Dropped Sharding Corridor ${id}`);
+      refreshAegisTopology();
+    } else {
+      alert(`Delete failed: ${data.error}`);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Cascading Delete Node
+window.deleteNode = async function(id) {
+  if (!confirm(`Warning: Cascading deletion of Node ${id} will sever or drop all dependent sharding corridors. Proceed?`)) return;
+  try {
+    const res = await fetch(`/api/topology/nodes/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      logIngestOutput(`[CASCADE] Deleted Node ${id}. Cascaded severing on corridors: ${data.cascadedSeveredCorridors?.join(', ') || 'None'}`);
+      refreshAegisTopology();
+    } else {
+      alert(`Node deletion failed: ${data.error}`);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Template Generator
+function loadIngestionTemplate() {
+  const entity = document.getElementById('ingest-entity').value;
+  const format = document.getElementById('ingest-format').value;
+  const buffer = document.getElementById('ingest-buffer');
+
+  if (!buffer) return;
+
+  if (entity === 'corridors') {
+    if (format === 'csv') {
+      buffer.value = `id,sourceNode,targetNode,channelType,status,entropyFloor
+CORR-INGEST-01,NODE-CLIENT-01,NODE-VAULT-01,IN_BAND_AMTD,ACTIVE,3.85
+CORR-INGEST-02,NODE-CLIENT-01,NODE-WEBRTC-01,OUT_OF_BAND_WEBRTC,ACTIVE,4.12
+CORR-INGEST-03,NODE-GATEWAY-01,NODE-VAULT-01,IN_BAND_AMTD,ACTIVE,3.95`;
+    } else {
+      buffer.value = JSON.stringify([
+        {
+          "id": "CORR-JSON-01",
+          "sourceNode": "NODE-CLIENT-01",
+          "targetNode": "NODE-VAULT-01",
+          "channelType": "IN_BAND_AMTD",
+          "status": "ACTIVE",
+          "entropyFloor": 3.8
+        },
+        {
+          "id": "CORR-JSON-02",
+          "sourceNode": "NODE-CLIENT-01",
+          "targetNode": "NODE-WEBRTC-01",
+          "channelType": "OUT_OF_BAND_WEBRTC",
+          "status": "ACTIVE",
+          "entropyFloor": 4.2
+        }
+      ], null, 2);
+    }
+  } else {
+    // nodes
+    if (format === 'csv') {
+      buffer.value = `id,name,role,ipAddress,status
+NODE-INGEST-01,Edge Gateway Delta,Intermediary Relayer,192.168.10.150,HEALTHY
+NODE-INGEST-02,Disaster Vault Mirror,Offline Cryptographic Anchor,10.0.99.12,HEALTHY`;
+    } else {
+      buffer.value = JSON.stringify([
+        {
+          "id": "NODE-JSON-01",
+          "name": "Edge Defense Node Echo",
+          "role": "Intermediary Relayer",
+          "ipAddress": "192.168.10.175",
+          "status": "HEALTHY"
+        },
+        {
+          "id": "NODE-JSON-02",
+          "name": "Cold Storage Vault Beta",
+          "role": "Offline Vault Anchor",
+          "ipAddress": "10.0.99.14",
+          "status": "HEALTHY"
+        }
+      ], null, 2);
+    }
+  }
+
+  logIngestOutput(`[TEMPLATE] Loaded ${format.toUpperCase()} schema for ${entity}.`);
+}
+
+// Execute Batch Ingest
+async function executeBatchIngest() {
+  const entity = document.getElementById('ingest-entity').value;
+  const format = document.getElementById('ingest-format').value;
+  const buffer = document.getElementById('ingest-buffer').value.trim();
+
+  if (!buffer) {
+    alert('Please enter or paste payload records into the ingestion buffer.');
+    return;
+  }
+
+  const contentType = format === 'csv' ? 'text/csv' : 'application/json';
+
+  logIngestOutput(`[INGEST] Transmitting batch ingestion request for ${entity} (${format.toUpperCase()})...`);
+
+  try {
+    const res = await fetch(`/api/topology/${entity}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': contentType },
+      body: buffer
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      logIngestOutput(`[SUCCESS] Ingested ${result.count} ${entity} records successfully!`);
+      refreshAegisTopology();
+    } else {
+      logIngestOutput(`[ERROR] Ingestion rejected: ${result.error}`);
+    }
+  } catch (err) {
+    logIngestOutput(`[ERROR] Network/parsing failure: ${err.message}`);
+  }
+}
+
+// Universal Cascade Purge
+async function triggerUniversalPurge() {
+  const confirmed = confirm('CRITICAL: Universal Cascade Purge will clear all sharding corridors across the defense mesh. Do you wish to proceed?');
+  if (!confirmed) return;
+
+  const doubleConfirmed = prompt('Type "CONFIRM PURGE" to execute universal cascade clearance:');
+  if (doubleConfirmed !== 'CONFIRM PURGE') {
+    logIngestOutput('[ABORT] Universal purge cancelled by operator.');
+    return;
+  }
+
+  logIngestOutput('[PURGE] Executing universal cascading purge across topology corridors...');
+
+  try {
+    const res = await fetch('/api/topology/corridors/purge', { method: 'POST' });
+    const result = await res.json();
+    if (result.success) {
+      logIngestOutput(`[SUCCESS] Universal Cascade Purge completed: ${result.message}`);
+      refreshAegisTopology();
+    } else {
+      logIngestOutput(`[ERROR] Purge failed: ${result.error}`);
+    }
+  } catch (err) {
+    logIngestOutput(`[ERROR] Purge network failure: ${err.message}`);
+  }
+}
+
+function logIngestOutput(msg) {
+  const logBox = document.getElementById('ingest-log');
+  if (!logBox) return;
+  const ts = new Date().toLocaleTimeString();
+  logBox.textContent = `[${ts}] ${msg}\n` + logBox.textContent;
+}
+

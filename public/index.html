@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -34,6 +34,13 @@
           <button id="btn-mode-aegis" class="mode-btn active aegis">🛡️ AEGIS Active</button>
           <button id="btn-mode-legacy" class="mode-btn">⚠️ Legacy Unprotected</button>
         </div>
+
+        <button id="btn-nav-mesh" class="mode-btn" style="background: rgba(6, 182, 212, 0.15); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3);">
+          🌐 Topology Mesh
+        </button>
+        <button id="btn-nav-ingest" class="mode-btn" style="background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3);">
+          📥 Ingestion Studio
+        </button>
 
         <button id="btn-reset-system" class="mode-btn" style="background: rgba(255,255,255,0.06); color: #e2e8f0;">
           🔄 Reset
@@ -263,7 +270,187 @@
       </div>
     </div>
 
+    <!-- SECTION 5: ZERO-TRUST PAYLOAD SHARDING TOPOLOGY MESH -->
+    <section id="mesh-section" class="soc-quadrant mesh-full-width">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>🌐</span> Zero-Trust Payload Sharding Topology Mesh
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button id="btn-open-provision-modal" class="btn-action-sm restore" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+            + Provision Corridor
+          </button>
+          <button id="btn-refresh-topology" class="btn-action-sm" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+            🔄 Refresh Mesh
+          </button>
+        </div>
+      </div>
+
+      <!-- Telemetry Strip -->
+      <div class="mesh-kpi-grid">
+        <div class="mesh-kpi-card">
+          <div class="mesh-kpi-lbl">Active Sharding Corridors</div>
+          <div class="mesh-kpi-val" id="kpi-corridors-count" style="color: #67e8f9;">0</div>
+        </div>
+        <div class="mesh-kpi-card">
+          <div class="mesh-kpi-lbl">Avg Shannon Entropy</div>
+          <div class="mesh-kpi-val" id="kpi-avg-entropy" style="color: #a855f7;">0.00 bits</div>
+        </div>
+        <div class="mesh-kpi-card">
+          <div class="mesh-kpi-lbl">Governed Endpoint Nodes</div>
+          <div class="mesh-kpi-val" id="kpi-nodes-count" style="color: #6ee7b7;">0</div>
+        </div>
+        <div class="mesh-kpi-card">
+          <div class="mesh-kpi-lbl">Recombination SLA Limit</div>
+          <div class="mesh-kpi-val" id="kpi-recomb-sla" style="color: #f59e0b;">50 ms</div>
+        </div>
+        <div class="mesh-kpi-card">
+          <div class="mesh-kpi-lbl">Total Shards Dispatched</div>
+          <div class="mesh-kpi-val" id="kpi-shards-dispatched" style="color: #fca5a5;">0</div>
+        </div>
+      </div>
+
+      <!-- Subgrid: Corridors & Endpoint Nodes -->
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem;">
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #67e8f9; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+            <span>Dual-Channel Entropy Corridors</span>
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 400;">1-Click Sever / Cascading Drop</span>
+          </div>
+          <div class="table-responsive">
+            <table class="mesh-table">
+              <thead>
+                <tr>
+                  <th>Corridor ID</th>
+                  <th>Endpoints</th>
+                  <th>Channel</th>
+                  <th>Status</th>
+                  <th>Entropy</th>
+                  <th>Controls</th>
+                </tr>
+              </thead>
+              <tbody id="corridors-tbody">
+                <tr><td colspan="6" style="text-align:center; color:#64748b;">Loading sharding corridors...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #6ee7b7; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+            <span>Governed Security Endpoint Nodes</span>
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 400;">Universal Cascading Target</span>
+          </div>
+          <div class="table-responsive">
+            <table class="mesh-table">
+              <thead>
+                <tr>
+                  <th>Node ID</th>
+                  <th>Name / Role</th>
+                  <th>IP Address</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="nodes-tbody">
+                <tr><td colspan="4" style="text-align:center; color:#64748b;">Loading nodes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: ENTERPRISE BATCH INGESTION STUDIO -->
+    <section id="ingestion-section" class="soc-quadrant mesh-full-width">
+      <div class="quadrant-header">
+        <div class="quadrant-title">
+          <span>📥</span> Enterprise Batch Ingestion Studio & Universal Purge
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button id="btn-universal-purge" class="btn-action-sm danger" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+            ⚠️ Universal Cascade Purge
+          </button>
+        </div>
+      </div>
+
+      <div class="ingest-toolbar">
+        <div>
+          <label style="font-size: 0.72rem; text-transform: uppercase; color: #94a3b8; margin-right: 0.4rem;">Target Entity:</label>
+          <select id="ingest-entity" class="ingest-select">
+            <option value="corridors">Sharding Corridors</option>
+            <option value="nodes">Endpoint Nodes</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size: 0.72rem; text-transform: uppercase; color: #94a3b8; margin-right: 0.4rem;">Data Schema:</label>
+          <select id="ingest-format" class="ingest-select">
+            <option value="csv">RFC 4180 CSV</option>
+            <option value="json">Strict JSON Schema</option>
+          </select>
+        </div>
+
+        <button id="btn-load-template" class="btn-action-sm" style="padding: 0.5rem 0.9rem;">
+          📋 Load Schema Template
+        </button>
+
+        <button id="btn-execute-ingest" class="btn-action-sm restore" style="padding: 0.5rem 1rem; font-weight: 700;">
+          ⚡ Execute Batch Ingest
+        </button>
+      </div>
+
+      <div class="ingest-grid">
+        <div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.35rem;">Ingestion Buffer (Edit or Paste Payload):</div>
+          <textarea id="ingest-buffer" class="ingest-textarea" spellcheck="false"></textarea>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.35rem;">Execution Terminal Log:</div>
+          <div id="ingest-log" class="ingest-log-box">Ready for ingestion batch payload...</div>
+        </div>
+      </div>
+    </section>
+
   </main>
+
+  <!-- Provision Corridor Modal -->
+  <div id="modal-provision-corridor" class="aegis-modal">
+    <div class="aegis-modal-content">
+      <div class="modal-header">
+        <h3>Provision Zero-Trust Sharding Corridor</h3>
+        <button id="btn-close-corridor-modal" class="modal-close">&times;</button>
+      </div>
+      <form id="form-provision-corridor">
+        <div class="modal-form-group">
+          <label>Corridor Identifier (Unique)</label>
+          <input type="text" id="modal-corridor-id" placeholder="e.g. CORR-SEC-VAULT-04" required>
+        </div>
+        <div class="modal-form-group">
+          <label>Source Endpoint Node</label>
+          <select id="modal-source-node" required></select>
+        </div>
+        <div class="modal-form-group">
+          <label>Destination Endpoint Node</label>
+          <select id="modal-target-node" required></select>
+        </div>
+        <div class="modal-form-group">
+          <label>Transport Channel Architecture</label>
+          <select id="modal-channel-type" required>
+            <option value="IN_BAND_AMTD">In-Band AMTD Port Rotation (Shard A)</option>
+            <option value="OUT_OF_BAND_WEBRTC">Out-of-Band WebRTC DataChannel (Shard B)</option>
+          </select>
+        </div>
+        <div class="modal-form-group">
+          <label>Entropy Floor Guarantee (bits)</label>
+          <input type="number" id="modal-entropy-floor" step="0.1" min="0" max="8" value="3.5" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-provision" class="btn-action-sm">Cancel</button>
+          <button type="submit" class="btn-action-sm restore">Provision Corridor</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="/js/aegis_app.js"></script>
 </body>
