@@ -838,3 +838,49 @@ function logIngestOutput(msg) {
   logBox.textContent = `[${ts}] ${msg}\n` + logBox.textContent;
 }
 
+
+
+// --- MEGA FEATURE: QUANTUM THREAT AI PREDICTION ---
+function initQuantumMatrix() {
+  const container = document.getElementById('quantum-bars');
+  if (!container) return;
+  // create 50 bars
+  for (let i = 0; i < 60; i++) {
+    let bar = document.createElement('div');
+    bar.style.flex = '1';
+    bar.style.backgroundColor = '#334155';
+    bar.style.height = (Math.random() * 20 + 10) + '%';
+    bar.style.transition = 'height 0.3s ease, background-color 0.3s ease';
+    container.appendChild(bar);
+  }
+  
+  setInterval(() => {
+    if(defenseMode !== 'AEGIS_ACTIVE') return;
+    const bars = container.children;
+    for (let i = 0; i < bars.length; i++) {
+      let h = Math.random() * 50 + 10;
+      bars[i].style.height = h + '%';
+      if (h > 55) {
+         bars[i].style.backgroundColor = '#f43f5e';
+      } else if (h > 40) {
+         bars[i].style.backgroundColor = '#c084fc';
+      } else {
+         bars[i].style.backgroundColor = '#10b981';
+      }
+    }
+    
+    // update probabilities
+    let prob = (Math.random() * 15).toFixed(2);
+    document.getElementById('q-threat-prob').textContent = prob + '%';
+    
+    const targets = ['Node-2-Bank-Server', 'Shard A HTTP Corridor', 'Shard B WebRTC Corridor', 'Auth Token Cache'];
+    document.getElementById('q-target-infra').textContent = targets[Math.floor(Math.random() * targets.length)];
+    
+  }, 1200);
+}
+
+// hook it up
+document.addEventListener('DOMContentLoaded', () => {
+  initQuantumMatrix();
+});
+
