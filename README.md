@@ -183,3 +183,12 @@ node --test tests/enterpriseMesh.test.js
 
 ## 📜 License
 MIT License. Developed as a flagship open-source zero-trust cybersecurity research platform.
+
+
+## User Flow Verification
+
+![User Flow](docs/aegis_csrf_blocked_verified.png)
+![User Flow](docs/aegis_human_transfer_verified.png)
+![User Flow](docs/aegis_multi_vector_defense_verified.png)
+![User Flow](docs/aegis_soc_nominal_verified.png)
+
