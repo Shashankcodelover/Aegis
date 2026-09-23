@@ -62,7 +62,7 @@ function StatusBadge({ status }: { status: LedgerStatus }) {
     CRITICAL_THEFT_SUCCESS: { label: 'THEFT',            cls: 'bg-red-100 text-red-700 font-black', Icon: AlertTriangle },
     AEGIS_VERIFIED:         { label: 'AEGIS ✓',          cls: 'bg-teal-100 text-teal-700',     Icon: Shield },
     AEGIS_BLOCKED:          { label: 'BLOCKED',          cls: 'bg-orange-100 text-orange-700', Icon: XCircle },
-    AEGIS_INTERCEPTED:      { label: 'AEGIS INTERCEPTED',cls: 'bg-purple-100 text-purple-700', Icon: Shield },
+    AEGIS_INTERCEPTED:      { label: 'AEGIS INTERCEPTED',cls: 'bg-blue-100 text-blue-700', Icon: Shield },
   };
   const { label, cls, Icon } = map[status];
   return (
@@ -103,7 +103,7 @@ function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
                   className={`border-b text-xs ${
                     e.status === 'CRITICAL_THEFT_SUCCESS' ? 'bg-red-50 border-red-100' :
                     e.status === 'AEGIS_BLOCKED'          ? 'bg-orange-50 border-orange-100' :
-                    e.status === 'AEGIS_INTERCEPTED'      ? 'bg-purple-50 border-purple-100' :
+                    e.status === 'AEGIS_INTERCEPTED'      ? 'bg-blue-50 border-blue-100' :
                     e.status === 'AEGIS_VERIFIED'         ? 'bg-teal-50 border-teal-100' :
                     'bg-white border-slate-50'
                   }`}

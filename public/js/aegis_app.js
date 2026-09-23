@@ -75,7 +75,7 @@ function updateStatsUI(data) {
         <td><span style="font-family: var(--font-mono); color: #67e8f9;">${tx.txId}</span></td>
         <td>${tx.recipient}</td>
         <td><strong style="color: #6ee7b7;">₹${tx.amount.toLocaleString()}</strong></td>
-        <td><span style="font-family: var(--font-mono); color: #a855f7;">${tx.timeDeltaMs !== undefined ? tx.timeDeltaMs + 'ms' : '0ms'}</span></td>
+        <td><span style="font-family: var(--font-mono); color: #3b82f6;">${tx.timeDeltaMs !== undefined ? tx.timeDeltaMs + 'ms' : '0ms'}</span></td>
         <td><span style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">APPROVED</span></td>
       </tr>
     `).join('');
@@ -207,7 +207,7 @@ function initTransportCanvas() {
     transportCtx.font = '10px JetBrains Mono';
     transportCtx.fillStyle = '#3b82f6';
     transportCtx.fillText('CHANNEL 1: IN-BAND (HTTP POST)', 10, 22);
-    transportCtx.fillStyle = '#a855f7';
+    transportCtx.fillStyle = '#3b82f6';
     transportCtx.fillText('CHANNEL 2: OUT-OF-BAND (WebRTC DATACHANNEL)', 10, 52);
 
     // Update & draw particles
@@ -237,7 +237,7 @@ function animateTransportParticle(type) {
   if (type === 'SHARD_A') {
     particles.push({ x: 200, y: 18, speed: 6, radius: 4, color: '#3b82f6' });
   } else if (type === 'SHARD_B') {
-    particles.push({ x: 290, y: 48, speed: 6, radius: 4, color: '#a855f7' });
+    particles.push({ x: 290, y: 48, speed: 6, radius: 4, color: '#3b82f6' });
   }
 }
 
@@ -606,7 +606,7 @@ function renderTopologyUI(data) {
           <tr>
             <td><strong style="font-family: var(--font-mono); color: #67e8f9;">${c.id}</strong></td>
             <td><span style="font-family: var(--font-mono); font-size: 0.75rem;">${c.sourceNode} → ${c.targetNode}</span></td>
-            <td><span style="font-size: 0.72rem; color: ${c.channelType === 'IN_BAND_AMTD' ? '#a855f7' : '#06b6d4'}; font-weight: 600;">${c.channelType}</span></td>
+            <td><span style="font-size: 0.72rem; color: ${c.channelType === 'IN_BAND_AMTD' ? '#3b82f6' : '#06b6d4'}; font-weight: 600;">${c.channelType}</span></td>
             <td><span class="status-badge ${c.status}">${c.status}</span></td>
             <td><span style="font-family: var(--font-mono); color: #f59e0b;">${c.entropyFloor ?? '3.5'} bits</span></td>
             <td>${severBtn}${delBtn}</td>
@@ -863,7 +863,7 @@ function initQuantumMatrix() {
       if (h > 55) {
          bars[i].style.backgroundColor = '#f43f5e';
       } else if (h > 40) {
-         bars[i].style.backgroundColor = '#c084fc';
+         bars[i].style.backgroundColor = '#60a5fa';
       } else {
          bars[i].style.backgroundColor = '#10b981';
       }

@@ -83,8 +83,8 @@ app.get("/", (_req, res) => {
     .btn-red:hover { background: #dc2626; }
     .btn-orange { background: #f97316; color: white; }
     .btn-orange:hover { background: #ea580c; }
-    .btn-purple { background: #8b5cf6; color: white; }
-    .btn-purple:hover { background: #7c3aed; }
+    .btn-blue { background: #3b82f6; color: white; }
+    .btn-blue:hover { background: #7c3aed; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .status {
       margin-top: 12px;
@@ -125,7 +125,7 @@ app.get("/", (_req, res) => {
     }
     .tag-red { background: #ef444420; color: #ef4444; border: 1px solid #ef444440; }
     .tag-orange { background: #f9731620; color: #f97316; border: 1px solid #f9731640; }
-    .tag-purple { background: #8b5cf620; color: #8b5cf6; border: 1px solid #8b5cf640; }
+    .tag-blue { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f640; }
   </style>
 </head>
 <body>
@@ -165,13 +165,13 @@ app.get("/", (_req, res) => {
 
   <!-- Attack 3: PostMessage injection to Person 1 -->
   <div class="card">
-    <span class="tag tag-purple">ATTACK 3</span>
+    <span class="tag tag-blue">ATTACK 3</span>
     <h2>📨 PostMessage Injection</h2>
     <p>
       Sends a SIMULATE_CSRF_ATTACK postMessage to Person 1's window (if open in same browser).
       AEGIS intercepts the automated event — no userActivation, no entropy.
     </p>
-    <button class="btn btn-purple" onclick="launchPostMessageAttack()" id="btn-pm">
+    <button class="btn btn-blue" onclick="launchPostMessageAttack()" id="btn-pm">
       📨 Send PostMessage Attack
     </button>
     <div class="status" id="status-pm"></div>

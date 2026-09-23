@@ -305,7 +305,7 @@ export default function SplitTunnelHero({onLegit,onAttack,loadingLegit,loadingAt
           <Tunnel d={D_SV} color="#06b6d4" lit={active}/>
           <Tunnel d={D_C1} color="#3b82f6" lit={splitting}/>
           <Tunnel d={D_C2} color="#10b981" lit={splitting&&!isAttack} dashed={isAttack&&splitting}/>
-          <Tunnel d={D_VR} color="#a855f7" lit={approved}/>
+          <Tunnel d={D_VR} color="#3b82f6" lit={approved}/>
 
           {/* Channel labels */}
           <rect x={CMX-76} y={C1Y-24} width={152} height={20} rx={10}
@@ -335,12 +335,12 @@ export default function SplitTunnelHero({onLegit,onAttack,loadingLegit,loadingAt
           {!isAttack&&c2P>0&&c2P<1&&<circle cx={c2X} cy={c2Y} r={8} fill="#10b981"
             style={{filter:"drop-shadow(0 0 12px #10b981)"}}/>}
 
-          {/* Vault→Receiver particle (purple) */}
-          {approved&&vrP>0&&vrP<1&&<circle cx={vrX} cy={vrY} r={9} fill="#a855f7"
-            style={{filter:"drop-shadow(0 0 14px #a855f7)"}}/>}
+          {/* Vault→Receiver particle (blue) */}
+          {approved&&vrP>0&&vrP<1&&<circle cx={vrX} cy={vrY} r={9} fill="#3b82f6"
+            style={{filter:"drop-shadow(0 0 14px #3b82f6)"}}/>}
 
           {/* Receiver blink when vrP reaches 1 */}
-          {approved&&vrP>=0.98&&<circle cx={RX} cy={MY} r={36} fill="none" stroke="#a855f7" strokeWidth="2"
+          {approved&&vrP>=0.98&&<circle cx={RX} cy={MY} r={36} fill="none" stroke="#3b82f6" strokeWidth="2"
             opacity={blink%2===0?0.7:0.2} style={{transition:"opacity 0.18s"}}/>}
 
           {/* ── Nodes ── */}
@@ -366,7 +366,7 @@ export default function SplitTunnelHero({onLegit,onAttack,loadingLegit,loadingAt
           <Vault step={step} blink={blink}/>
 
           {/* Receiver */}
-          <Node cx={RX} cy={MY} r={26} color="#a855f7" lit={approved} pulse
+          <Node cx={RX} cy={MY} r={26} color="#3b82f6" lit={approved} pulse
             emoji="🏦" label="RECEIVER" sub={approved?"Payment Received!":"Awaiting..."}/>
 
           {/* Blocked: return arrow */}
